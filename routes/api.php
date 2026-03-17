@@ -40,4 +40,25 @@ Route::get('/test-expiration', function () {
         'new_status_after_command_ran' => $reservation->status, // This should now say 'cancelled'
         'command_output' => \Illuminate\Support\Facades\Artisan::output()
     ]);
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ProfileController;
+
+
+Route::group([
+    'middleware' => 'api',
+    'prefix' => 'auth'
+], function ($router) {
+    Route::post('register', [AuthController::class, 'register']);
+    Route::post('login', [AuthController::class, 'login']);
+    Route::post('google', [AuthController::class, 'googleLogin']);
+    Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('refresh', [AuthController::class, 'refresh']);
+    Route::post('me', [AuthController::class, 'me']);
+});
+
+
+
+Route::middleware('auth:api')->prefix('profile')->group(function () {
+    Route::put('/', [ProfileController::class, 'update']);
+    Route::delete('/', [ProfileController::class, 'destroy']);
 });
