@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\FilmController;
+use App\Http\Controllers\SeanceController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\PaymentController;
 
@@ -34,3 +36,7 @@ Route::middleware('auth:api')->prefix('profile')->group(function () {
     Route::delete('/', [ProfileController::class, 'destroy']);
 });
 Route::post('/webhook', [PaymentController::class, 'webhook']);
+
+// Films API
+Route::apiResource('films', FilmController::class);
+Route::apiResource('seances', SeanceController::class);
