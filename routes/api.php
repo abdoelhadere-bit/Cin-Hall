@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\FilmController;
+use App\Http\Controllers\SeanceController;
 use App\Http\Controllers\Api\ReservationController;
 
 Route::get('/user', function (Request $request) {
@@ -32,3 +34,7 @@ Route::middleware('auth:api')->prefix('profile')->group(function () {
     Route::put('/', [ProfileController::class, 'update']);
     Route::delete('/', [ProfileController::class, 'destroy']);
 });
+
+// Films API
+Route::apiResource('films', FilmController::class);
+Route::apiResource('seances', SeanceController::class);
