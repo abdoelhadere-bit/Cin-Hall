@@ -8,6 +8,12 @@ class Room extends Model
 {
     protected $fillable = [
         'name',
-        'capacity',
+        'total_rows',
+        'seats_per_row',
     ];
+
+    public function seats()
+    {
+        return $this->hasMany(Seat::class);
+    }
 }
