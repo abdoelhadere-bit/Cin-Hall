@@ -4,20 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Reservation;
 
-class Payment extends Model
+class Ticket extends Model
 {
-    /** @use HasFactory<\Database\Factories\PaymentFactory> */
+    /** @use HasFactory<\Database\Factories\TicketFactory> */
     use HasFactory;
-    protected $table = 'payment';
+
 
     protected $fillable = [
         'reservation_id',
-        'payment_method',
-        'transaction_id',
-        'amount',
-        'status',
+        'qr_code',
+        'pdf_url'
     ];
 
     public function reservation()
@@ -25,7 +22,5 @@ class Payment extends Model
         return $this->belongsTo(Reservation::class);
     }
 
-
     
-
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\FilmController;
 use App\Http\Controllers\SeanceController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\TicketController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -41,3 +42,14 @@ Route::post('/webhook', [PaymentController::class, 'webhook']);
 // Films API
 Route::apiResource('films', FilmController::class);
 Route::apiResource('seances', SeanceController::class);
+
+Route::middleware('auth:api')->group(function () {
+    Route::post('/reservations/{id}/checkout', [PaymentController::class, 'checkout'])->name('checkout');
+    Route::get('/reservations/{id}/ticket', [TicketController::class, 'show'])->name('tickets.show');
+    Route::get('/tickets/{id}/download', [TicketController::class, 'downloadPdf'])->name('tickets.download');
+});
+
+// Used for QR Code verification
+Route::get('/tickets/{id}/verify', function ($id) {
+    return response()->json(['message' => 'Ticket verified', 'reservation_id' => $id]);
+})->name('tickets.verify');
