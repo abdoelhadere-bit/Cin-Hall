@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\FilmController;
+use App\Http\Controllers\SeanceController;
 
 
 Route::group([
@@ -24,3 +26,7 @@ Route::middleware('auth:api')->prefix('profile')->group(function () {
     Route::put('/', [ProfileController::class, 'update']);
     Route::delete('/', [ProfileController::class, 'destroy']);
 });
+
+// Films API
+Route::apiResource('films', FilmController::class);
+Route::apiResource('seances', SeanceController::class);
