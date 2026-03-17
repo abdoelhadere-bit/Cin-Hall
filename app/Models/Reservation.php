@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Reservation extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'showing_id',
@@ -26,5 +29,10 @@ class Reservation extends Model
     public function seats()
     {
         return $this->belongsToMany(Seat::class)->withTimestamps();
+    }
+
+    public function ticket()
+    {
+        return $this->hasOne(Ticket::class);
     }
 }
