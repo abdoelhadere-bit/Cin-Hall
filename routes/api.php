@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReservationController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -32,3 +33,4 @@ Route::middleware('auth:api')->prefix('profile')->group(function () {
     Route::put('/', [ProfileController::class, 'update']);
     Route::delete('/', [ProfileController::class, 'destroy']);
 });
+Route::post('/webhook', [PaymentController::class, 'webhook']);
