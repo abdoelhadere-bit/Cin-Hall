@@ -39,6 +39,11 @@ Route::middleware('auth:api')->prefix('profile')->group(function () {
 });
 Route::post('/webhook', [PaymentController::class, 'webhook']);
 
+// Films API - Admin routes (auth required + admin check)
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::apiResource('films', FilmController::class);
+    Route::apiResource('seances', SeanceController::class);
+});
 // Films API
 Route::apiResource('films', FilmController::class);
 Route::apiResource('seances', SeanceController::class);
