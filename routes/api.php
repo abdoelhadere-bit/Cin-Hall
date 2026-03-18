@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\RoomController;
+use App\Http\Controllers\Api\SalleController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\FilmController;
@@ -13,7 +13,8 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::apiResource('rooms', RoomController::class);
+Route::put('seats/bulk-update', [\App\Http\Controllers\Api\SeatController::class, 'bulkUpdate']);
+Route::apiResource('rooms', SalleController::class);
 Route::apiResource('reservations', ReservationController::class);
 
 Route::group([
