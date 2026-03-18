@@ -16,6 +16,7 @@ class Seance extends Model
         'start_time',
         'language',
         'session_type',
+        'base_price',
     ];
 
     protected $casts = [
