@@ -35,6 +35,8 @@ Route::middleware('auth:api')->prefix('profile')->group(function () {
     Route::delete('/', [ProfileController::class, 'destroy']);
 });
 
-// Films API
-Route::apiResource('films', FilmController::class);
-Route::apiResource('seances', SeanceController::class);
+// Films API - Admin routes (auth required + admin check)
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::apiResource('films', FilmController::class);
+    Route::apiResource('seances', SeanceController::class);
+});
