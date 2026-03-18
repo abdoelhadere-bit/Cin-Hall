@@ -60,6 +60,44 @@ class PaymentController extends Controller
     }
 
     /**
+     * Redirect here after successful payment to verify session.
+     */
+    public function success(Request $request)
+    {
+        $sessionId = $request->query('session_id');
+
+        if (!$sessionId) {
+            return response()->json(['error' => 'No session ID provided'], 400);
+        }
+
+        try {
+            $session = $this->paymentService->retrieveStripeSession($sessionId);
+            
+            if ($session->payment_status === 'paid') {
+                $result = $this->paymentService->completePayment($session, $this->ticketService);
+                
+                if ($result['success'] && isset($result['reservation'])) {
+                    $res = $result['reservation'];
+                    $ticket = $res->ticket;
+                    
+                    return response()->json([
+                        'message' => 'Payment successful',
+                        'reservation_id' => $res->id,
+                        'ticket' => $ticket ? [
+                            'id' => $ticket->id,
+                            'pdf_url' => asset('storage/' . $ticket->pdf_url),
+                        ] : null
+                    ], 200);
+                }
+            }
+
+            return response()->json(['message' => 'Payment already processed or session not paid'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Webhook for payment confirmations (Stripe).
      */
     public function webhook(Request $request)
@@ -76,25 +114,7 @@ class PaymentController extends Controller
 
         if ($event->type === 'checkout.session.completed') {
             $session = $event->data->object;
-            $paymentId = $session->metadata->payment_id;
-            
-            $payment = Payment::find($paymentId);
-
-            if ($payment && $payment->status !== 'success') {
-                $payment->update([
-                    'status' => 'success',
-                    'transaction_id' => $session->id,
-                ]);
-
-                $reservation = Reservation::with('user', 'seats')->find($session->metadata->reservation_id);
-
-                if ($reservation) {
-                    $reservation->update(['status' => 'paid']);
-                    
-                    // Generate ticket
-                    $this->ticketService->generate($reservation);
-                }
-            }
+            $this->paymentService->completePayment($session, $this->ticketService);
         }
 
         return response('Webhook handled', 200);

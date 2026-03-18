@@ -26,7 +26,7 @@ class PaymentService
                 ],
                 'quantity' => 1,
             ]],
-            'success_url' => url('/payment/success?session_id={CHECKOUT_SESSION_ID}'),
+            'success_url' => route('payment.success') . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => url('/payment/cancel'),
             'metadata' => [
                 'payment_id' => $payment->id,
@@ -35,15 +35,50 @@ class PaymentService
         ]);
     }
 
-    /**
-     * This is a mock/placeholder for PayPal integration as no SDK is installed.
-     * In a real project, we would use a package like 'srmklive/laravel-paypal'.
-     */
-    // public function createPayPalOrder(Reservation $reservation, Payment $payment)
-    // {
-    //     // For demonstration, let's assume we return a mock URL
-    //     return (object) [
-    //         'url' => 'https://www.sandbox.paypal.com/checkoutnow?id=MOCK_ORDER_ID'
-    //     ];
-    // }
+    public function retrieveStripeSession(string $sessionId)
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+        return StripeSession::retrieve($sessionId);
+    }
+
+    public function completePayment(StripeSession $session, TicketService $ticketService)
+    {
+        $paymentId = $session->metadata->payment_id;
+        $payment = Payment::find($paymentId);
+
+        if ($payment && $payment->status !== 'success') {
+            $payment->update([
+                'status' => 'success',
+                'transaction_id' => $session->id,
+            ]);
+
+            $reservation = Reservation::with('user', 'seats')->find($session->metadata->reservation_id);
+
+            if ($reservation) {
+                $reservation->update(['status' => 'paid']);
+                
+                // Generate ticket
+                $ticketService->generate($reservation);
+                $reservation->load('ticket');
+                
+                return [
+                    'success' => true,
+                    'reservation' => $reservation,
+                    'payment' => $payment
+                ];
+            }
+        }
+
+        return [
+            'success' => false,
+            'message' => 'Payment already processed or not found'
+        ];
+    }
+
+    public function createPayPalOrder(Reservation $reservation, Payment $payment)
+    {
+        return (object) [
+            'url' => 'https://www.sandbox.paypal.com/checkoutnow?id=MOCK_ORDER_ID'
+        ];
+    }
 }

@@ -20,26 +20,27 @@ Route::group([
     'middleware' => 'api',
     'prefix' => 'auth'
 ], function ($router) {
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('google', [AuthController::class, 'googleLogin']);
-    Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('refresh', [AuthController::class, 'refresh']);
-    Route::post('me', [AuthController::class, 'me']);
+    Route::post('register', [AuthController::class , 'register']);
+    Route::post('login', [AuthController::class , 'login']);
+    Route::post('google', [AuthController::class , 'googleLogin']);
+    Route::post('logout', [AuthController::class , 'logout']);
+    Route::post('refresh', [AuthController::class , 'refresh']);
+    Route::post('me', [AuthController::class , 'me']);
 });
 
 
 
 Route::middleware('auth:api')->prefix('profile')->group(function () {
-    Route::put('/', [ProfileController::class, 'update']);
-    Route::delete('/', [ProfileController::class, 'destroy']);
+    Route::put('/', [ProfileController::class , 'update']);
+    Route::delete('/', [ProfileController::class , 'destroy']);
 });
-Route::post('/webhook', [PaymentController::class, 'webhook']);
+Route::post('/webhook', [PaymentController::class , 'webhook']);
+Route::get('/payment/success', [PaymentController::class , 'success'])->name('payment.success');
 
 Route::middleware('auth:api')->group(function () {
-    Route::post('/reservations/{id}/checkout', [PaymentController::class, 'checkout'])->name('checkout');
-    Route::get('/reservations/{id}/ticket', [TicketController::class, 'show'])->name('tickets.show');
-    Route::get('/tickets/{id}/download', [TicketController::class, 'downloadPdf'])->name('tickets.download');
+    Route::post('/reservations/{id}/checkout', [PaymentController::class , 'checkout'])->name('checkout');
+    Route::get('/reservations/{id}/ticket', [TicketController::class , 'show'])->name('tickets.show');
+    Route::get('/tickets/{id}/download', [TicketController::class , 'downloadPdf'])->name('tickets.download');
 });
 
 // Used for QR Code verification
