@@ -1,0 +1,300 @@
+{
+  "info": {
+    "_postman_id": "cin-hall-collection-0001",
+    "name": "Cin-Hall API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection for testing Films and Seances endpoints"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "filmId",
+      "value": "10",
+      "type": "string"
+    },
+    {
+      "key": "seanceId",
+      "value": "5",
+      "type": "string"
+    },
+    {
+      "key": "salleId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Films",
+      "item": [
+        {
+          "name": "List Films",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/films",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "films"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show Film",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/films/{{filmId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "films",
+                "{{filmId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Film",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Sample Movie\",\n  \"description\": \"Created by Postman\",\n  \"duration\": 120,\n  \"minimum_age\": 0,\n  \"trailer_url\": null,\n  \"genre\": \"Drama\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/films",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "films"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Film",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Film Title\",\n  \"duration\": 125,\n  \"genre\": \"Drama\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/films/{{filmId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "films",
+                "{{filmId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Film",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/films/{{filmId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "films",
+                "{{filmId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Seances",
+      "item": [
+        {
+          "name": "List Seances",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/seances",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "seances"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter Seances by Type (vip)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/seances?type=vip",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "seances"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "vip"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter Seances by Date",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/seances?date=2026-03-18",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "seances"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-03-18"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show Seance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/seances/{{seanceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "seances",
+                "{{seanceId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Seance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"film_id\": 9,\n  \"salle_id\": 1,\n  \"start_time\": \"2026-03-21 19:30:00\",\n  \"language\": \"FR\",\n  \"session_type\": \"vip\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/seances",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "seances"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Seance",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"film_id\": 9,\n  \"salle_id\": 1,\n  \"start_time\": \"2026-03-21 20:30:00\",\n  \"language\": \"FR\",\n  \"session_type\": \"vip\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/seances/{{seanceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "seances",
+                "{{seanceId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Seance",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/seances/{{seanceId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "seances",
+                "{{seanceId}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

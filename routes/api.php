@@ -50,17 +50,11 @@ Route::get('/tickets/{id}/verify', function ($id) {
     return response()->json(['message' => 'Ticket verified', 'reservation_id' => $id]);
 })->name('tickets.verify');
 
+// Films API - Admin routes (auth required + admin check)
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::apiResource('films', FilmController::class);
+    Route::apiResource('seances', SeanceController::class);
+});
 // Films API
 Route::apiResource('films', FilmController::class);
 Route::apiResource('seances', SeanceController::class);
-
-Route::middleware('auth:api')->group(function () {
-    Route::post('/reservations/{id}/checkout', [PaymentController::class, 'checkout'])->name('checkout');
-    Route::get('/reservations/{id}/ticket', [TicketController::class, 'show'])->name('tickets.show');
-    Route::get('/tickets/{id}/download', [TicketController::class, 'downloadPdf'])->name('tickets.download');
-});
-
-// Used for QR Code verification
-Route::get('/tickets/{id}/verify', function ($id) {
-    return response()->json(['message' => 'Ticket verified', 'reservation_id' => $id]);
-})->name('tickets.verify');

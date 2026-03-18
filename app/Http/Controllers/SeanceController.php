@@ -22,6 +22,12 @@ class SeanceController extends Controller
             }
         }
 
+        // Date filter: ?date=YYYY-MM-DD will match seances on that date
+        $date = $request->query('date');
+        if ($date) {
+            $query->whereDate('start_time', $date);
+        }
+
         $seances = $query->get();
         return response()->json($seances);
     }
