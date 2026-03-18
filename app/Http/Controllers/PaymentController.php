@@ -3,63 +3,100 @@
 namespace App\Http\Controllers;
 
 use App\Models\Payment;
+use App\Models\Reservation;
 use Illuminate\Http\Request;
+use App\Services\PaymentService;
+use App\Services\TicketService;
 
 class PaymentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    protected $paymentService;
+    protected $ticketService;
+
+    public function __construct(PaymentService $paymentService, TicketService $ticketService)
     {
-        //
+        $this->paymentService = $paymentService;
+        $this->ticketService = $ticketService;
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Entry point for payments.
+     * 
+     * @param Request $request
+     * @param int $reservationId
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function create()
+    public function checkout(Request $request, $reservationId)
     {
-        //
+        $request->validate([
+            'payment_method' => 'required|in:stripe,paypal',
+        ]);
+
+        $reservation = Reservation::findOrFail($reservationId);
+        
+        if ($reservation->status === 'paid') {
+            return response()->json(['message' => 'Reservation already paid'], 400);
+        }
+
+        $payment = Payment::create([
+            'reservation_id' => $reservation->id,
+            'payment_method' => $request->payment_method,
+            'amount' => $reservation->total_price,
+            'status' => 'pending'
+        ]);
+
+        try {
+            if ($request->payment_method === 'stripe') {
+                $session = $this->paymentService->createStripeSession($reservation, $payment);
+                return response()->json(['url' => $session->url]);
+            } else {
+                // PayPal
+                $order = $this->paymentService->createPayPalOrder($reservation, $payment);
+                return response()->json(['url' => $order->url]);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Webhook for payment confirmations (Stripe).
      */
-    public function store(Request $request)
+    public function webhook(Request $request)
     {
-        //
-    }
+        $payload = $request->getContent();
+        $sigHeader = $request->header('Stripe-Signature');
+        $secret = config('services.stripe.webhook_secret');
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Payment $payment)
-    {
-        //
-    }
+        try {
+            $event = \Stripe\Webhook::constructEvent($payload, $sigHeader, $secret);
+        } catch (\Exception $e) {
+            return response('Invalid signature', 400);
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Payment $payment)
-    {
-        //
-    }
+        if ($event->type === 'checkout.session.completed') {
+            $session = $event->data->object;
+            $paymentId = $session->metadata->payment_id;
+            
+            $payment = Payment::find($paymentId);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Payment $payment)
-    {
-        //
-    }
+            if ($payment && $payment->status !== 'success') {
+                $payment->update([
+                    'status' => 'success',
+                    'transaction_id' => $session->id,
+                ]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Payment $payment)
-    {
-        //
+                $reservation = Reservation::with('user', 'seats')->find($session->metadata->reservation_id);
+
+                if ($reservation) {
+                    $reservation->update(['status' => 'paid']);
+                    
+                    // Generate ticket
+                    $this->ticketService->generate($reservation);
+                }
+            }
+        }
+
+        return response('Webhook handled', 200);
     }
 }

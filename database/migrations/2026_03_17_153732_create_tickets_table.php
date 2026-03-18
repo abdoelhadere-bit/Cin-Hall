@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('seats', function (Blueprint $table) {
+        Schema::create('tickets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('salle_id')->constrained('salles')->onDelete('cascade');
-            $table->string('row_letter', 2);
-            $table->integer('seat_number');
-            $table->boolean('is_vip')->default(false);
+            $table->foreignId('reservation_id')->constrained('reservations')->cascadeOnDelete();
+            $table->string('qr_code')->nullable();
+            $table->string('pdf_url')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('seats');
+        Schema::dropIfExists('tickets');
     }
 };

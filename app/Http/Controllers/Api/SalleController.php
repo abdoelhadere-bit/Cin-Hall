@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Room;
+use App\Models\Salle;
 use App\Models\Seat;    
 
-class RoomController extends Controller
+class SalleController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -28,21 +28,21 @@ class RoomController extends Controller
             'seats_per_row' => 'required|integer|min:1',
         ]);
 
-        $room = Room::create($validated);
+        $salle = Salle::create($validated);
 
         // Generate seats automatically
         $rows = range('A', 'Z');
         $seatsData = [];
 
-        for ($i = 0; $i < $room->total_rows; $i++) {
+        for ($i = 0; $i < $salle->total_rows; $i++) {
             $rowLetter = $rows[$i];
 
-            for ($j = 1; $j <= $room->seats_per_row; $j++) {
+            for ($j = 1; $j <= $salle->seats_per_row; $j++) {
                 $seatsData[] = [
-                    'room_id' => $room->id,
+                    'salle_id' => $salle->id,
                     'row_letter' => $rowLetter,
                     'seat_number' => $j,
-                    'is_vip' => false,
+                    'type' => 'standard',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -54,7 +54,7 @@ class RoomController extends Controller
 
         return response()->json([
             'message' => 'Room and ' . count($seatsData) . ' seats created successfully.',
-            'room' => $room->load('seats')
+            'room' => $salle->load('seats')
         ], 201);
     }
 
