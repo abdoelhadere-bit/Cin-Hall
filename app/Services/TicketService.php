@@ -25,7 +25,7 @@ class TicketService
         }
 
         $qrCodeData = route('tickets.verify', ['id' => $reservation->id]);
-        $qrCode = QrCode::create($qrCodeData);
+        $qrCode = new QrCode($qrCodeData);
         $writer = new SvgWriter();
         $result = $writer->write($qrCode);
 
