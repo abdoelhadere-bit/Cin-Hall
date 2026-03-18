@@ -10,14 +10,14 @@ class Seat extends Model
     use HasFactory;
 
     protected $fillable = [
-        'room_id',
+        'salle_id',
         'row_letter',
         'seat_number',
-        'is_vip',
+        'type',
     ];
 
-    public function room()
+    public function salle()
     {
-        return $this->belongsTo(Room::class);
+        return $this->belongsTo(Salle::class);
     }
 }
