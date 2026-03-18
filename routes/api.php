@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RoomController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\FilmController;
+use App\Http\Controllers\SeanceController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TicketController;
@@ -46,3 +48,7 @@ Route::middleware('auth:api')->group(function () {
 Route::get('/tickets/{id}/verify', function ($id) {
     return response()->json(['message' => 'Ticket verified', 'reservation_id' => $id]);
 })->name('tickets.verify');
+
+// Films API
+Route::apiResource('films', FilmController::class);
+Route::apiResource('seances', SeanceController::class);
