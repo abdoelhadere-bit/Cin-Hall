@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->unsignedBigInteger('showing_id')->nullable(); // Will relate to showings later
+            $table->foreignId('seance_id')->constrained('seances')->onDelete('cascade'); // Points to seances now
             $table->decimal('total_price', 8, 2)->default(0);
             $table->enum('status', ['pending', 'paid', 'cancelled'])->default('pending');
             $table->timestamp('expires_at')->nullable();

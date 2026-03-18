@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('salles', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->integer('total_rows')->default(0);
-            $table->integer('seats_per_row')->default(0);
-            $table->timestamps();
+        Schema::table('seances', function (Blueprint $table) {
+            $table->decimal('base_price', 8, 2)->default(50.00)->after('session_type');
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('rooms');
+        Schema::table('seances', function (Blueprint $table) {
+            $table->dropColumn('base_price');
+        });
     }
 };
