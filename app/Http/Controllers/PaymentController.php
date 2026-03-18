@@ -21,10 +21,6 @@ class PaymentController extends Controller
 
     /**
      * Entry point for payments.
-     * 
-     * @param Request $request
-     * @param int $reservationId
-     * @return \Illuminate\Http\JsonResponse
      */
     public function checkout(Request $request, $reservationId)
     {
@@ -50,7 +46,6 @@ class PaymentController extends Controller
                 $session = $this->paymentService->createStripeSession($reservation, $payment);
                 return response()->json(['url' => $session->url]);
             } else {
-                // PayPal
                 $order = $this->paymentService->createPayPalOrder($reservation, $payment);
                 return response()->json(['url' => $order->url]);
             }
@@ -98,5 +93,35 @@ class PaymentController extends Controller
         }
 
         return response('Webhook handled', 200);
+    }
+
+    /**
+     * Redirect here after successful payment to verify session.
+     */
+    public function success(Request $request)
+    {
+        $sessionId = $request->query('session_id');
+
+        if (!$sessionId) {
+            return response()->json(['error' => 'No session ID provided'], 400);
+        }
+
+        try {
+            $result = $this->paymentService->handleSuccessRedirect($sessionId, $this->ticketService);
+            
+            if ($result['success']) {
+                $reservation = $result['reservation'];
+                return response()->json([
+                    'message' => 'Payment successful',
+                    'reservation_id' => $reservation->id,
+                    'status' => $reservation->status,
+                    'ticket' => $reservation->ticket
+                ]);
+            }
+
+            return response()->json(['error' => $result['message']], 400);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }
