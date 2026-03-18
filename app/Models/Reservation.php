@@ -8,7 +8,7 @@ class Reservation extends Model
 {
     protected $fillable = [
         'user_id',
-        'showing_id',
+        'seance_id',
         'total_price',
         'status',
         'expires_at',
@@ -17,6 +17,11 @@ class Reservation extends Model
     protected $casts = [
         'expires_at' => 'datetime',
     ];
+
+    public function seance()
+    {
+        return $this->belongsTo(Seance::class);
+    }
 
     public function user()
     {
