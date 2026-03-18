@@ -30,6 +30,7 @@ Route::group([
 
 
 
+
 Route::middleware('auth:api')->prefix('profile')->group(function () {
     Route::put('/', [ProfileController::class , 'update']);
     Route::delete('/', [ProfileController::class , 'destroy']);
