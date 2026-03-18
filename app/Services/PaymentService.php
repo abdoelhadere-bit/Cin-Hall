@@ -39,11 +39,11 @@ class PaymentService
      * This is a mock/placeholder for PayPal integration as no SDK is installed.
      * In a real project, we would use a package like 'srmklive/laravel-paypal'.
      */
-    public function createPayPalOrder(Reservation $reservation, Payment $payment)
-    {
-        // For demonstration, let's assume we return a mock URL
-        return (object) [
-            'url' => 'https://www.sandbox.paypal.com/checkoutnow?id=MOCK_ORDER_ID'
-        ];
-    }
+    // public function createPayPalOrder(Reservation $reservation, Payment $payment)
+    // {
+    //     // For demonstration, let's assume we return a mock URL
+    //     return (object) [
+    //         'url' => 'https://www.sandbox.paypal.com/checkoutnow?id=MOCK_ORDER_ID'
+    //     ];
+    // }
 }
