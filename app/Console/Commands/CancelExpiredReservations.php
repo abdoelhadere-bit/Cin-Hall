@@ -36,8 +36,8 @@ class CancelExpiredReservations extends Command
         foreach ($expiredReservations as $reservation) {
             $reservation->update(['status' => 'cancelled']);
             
-            // Optionally, we could also detach seats entirely if we want them out of the pivot table:
-            // $reservation->seats()->detach();
+            //  detach seats entirely out of the pivot table
+            $reservation->seats()->detach();
 
             $count++;
         }
