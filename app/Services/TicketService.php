@@ -24,10 +24,16 @@ class TicketService
             return $reservation->ticket;
         }
 
+        // Generate QR Code data
         $qrCodeData = route('tickets.verify', ['id' => $reservation->id]);
-        $qrCode = QrCode::create($qrCodeData);
+        $qrCode = new QrCode($qrCodeData);
         $writer = new SvgWriter();
         $result = $writer->write($qrCode);
+
+        // Ensure directory exists
+        if (!Storage::disk('public')->exists('qrcodes')) {
+            Storage::disk('public')->makeDirectory('qrcodes');
+        }
 
         $qrCodeFileName = 'qrcodes/ticket_' . $reservation->id . '.svg';
         Storage::disk('public')->put($qrCodeFileName, $result->getString());
@@ -36,6 +42,9 @@ class TicketService
             'reservation_id' => $reservation->id,
             'qr_code' => $qrCodeFileName,
         ]);
+
+        // Set the reservation relation to avoid reloading
+        $ticket->setRelation('reservation', $reservation);
 
         // Generate PDF
         $this->generatePdf($ticket);
@@ -53,10 +62,49 @@ class TicketService
     {
         $reservation = $ticket->reservation;
         
-        // DomPDF might struggle with embedded SVG without certain settings
-        // but we'll try it with plain view first
-        $pdf = Pdf::loadView('tickets.pdf', compact('ticket', 'reservation'));
+        if (!$reservation->relationLoaded('user')) {
+             $reservation->load('user');
+        }
+
+        $qrCodeContent = Storage::disk('public')->get($ticket->qr_code);
         
+        // Base64 encode SVG for embedding in PDF
+        $qrCodeBase64 = base64_encode($qrCodeContent);
+        $qrCodeDataUri = 'data:image/svg+xml;base64,' . $qrCodeBase64;
+
+        $html = "
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; text-align: center; color: #333; }
+                .ticket-container { border: 2px solid #333; padding: 20px; margin: 20px; border-radius: 10px; }
+                .header { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #e53e3e; }
+                .detail { margin: 10px 0; font-size: 16px; }
+                .qr-code { margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class='ticket-container'>
+                <div class='header'>Cinema Ticket</div>
+                <div class='detail'><strong>Reservation ID:</strong> #{$reservation->id}</div>
+                <div class='detail'><strong>User:</strong> {$reservation->user->name}</div>
+                <div class='detail'><strong>Amount:</strong> \${$reservation->total_price}</div>
+                <div class='detail'><strong>Status:</strong> Paid</div>
+                <div class='qr-code'>
+                    <img src='{$qrCodeDataUri}' width='200' height='200'>
+                </div>
+            </div>
+        </body>
+        </html>
+        ";
+
+        $pdf = Pdf::loadHTML($html);
+        
+        // Ensure directory exists
+        if (!Storage::disk('public')->exists('tickets')) {
+            Storage::disk('public')->makeDirectory('tickets');
+        }
+
         $pdfFileName = 'tickets/ticket_' . $reservation->id . '.pdf';
         Storage::disk('public')->put($pdfFileName, $pdf->output());
 

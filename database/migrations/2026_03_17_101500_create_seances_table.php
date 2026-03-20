@@ -18,7 +18,8 @@ class CreateSeancesTable extends Migration
             $table->foreignId('film_id')->constrained('films')->onDelete('cascade');
             $table->foreignId('salle_id')->constrained('salles')->onDelete('cascade');
             $table->dateTime('start_time');
-            $table->string('language');
+            $table->dateTime('end_time')->nullable();
+            $table->string('language')->default('English');
             $table->enum('session_type', ['normal', 'vip'])->default('normal');
             $table->timestamps();
         });

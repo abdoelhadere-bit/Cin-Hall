@@ -14,6 +14,7 @@ class Seance extends Model
         'film_id',
         'salle_id',
         'start_time',
+        'end_time',
         'language',
         'session_type',
         'base_price',
