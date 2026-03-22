@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\DashboardController;
 
 Route::group([
     'middleware' => 'api',
@@ -83,6 +84,7 @@ Route::middleware(['auth:api', 'admin'])->group(function () {
     Route::prefix('admin')->group(function () {
         Route::get('stats', [AdminController::class, 'stats']);
         Route::get('film-stats', [AdminController::class, 'filmStats']);
+        Route::get('dashboard', [DashboardController::class, 'index']);
         Route::get('users', [AdminController::class, 'users']);
         Route::delete('users/{id}', [AdminController::class, 'deleteUser']);
     });
