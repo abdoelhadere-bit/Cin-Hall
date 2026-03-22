@@ -10,31 +10,55 @@ use App\Models\Seance;
 
 class ReservationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+   
     public function index()
     {
-        //
+        $reservations = Reservation::with(['seance.film', 'seance.salle', 'seats', 'ticket'])
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return response()->json($reservations);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
             'seance_id' => 'required|exists:seances,id',
-            'seat_ids' => 'required|array|min:1',
+            'seat_ids'  => 'required|array|min:1',
             'seat_ids.*' => 'exists:seats,id',
         ]);
 
-        // Check if ANY of the requested seats are already reserved for this seance
+        $seance = Seance::findOrFail($validated['seance_id']);
+        $seats  = Seat::whereIn('id', $validated['seat_ids'])->get();
+
+        $hasCoupleSeat = $seats->contains(fn($s) => $s->type === 'couple');
+        if ($hasCoupleSeat) {
+            if ($seance->session_type !== 'vip') {
+                return response()->json([
+                    'error' => 'Couple seats are only available in VIP seances.'
+                ], 422);
+            }
+            if (count($validated['seat_ids']) !== 2) {
+                return response()->json([
+                    'error' => 'A couple seat reservation must book exactly 2 seats.'
+                ], 422);
+            }
+        }
+
+        foreach ($seats as $seat) {
+            if ($seat->salle_id !== $seance->salle_id) {
+                return response()->json([
+                    'error' => 'One or more seats do not belong to the room assigned to this seance.'
+                ], 422);
+            }
+        }
+
         $alreadyReserved = Reservation::where('seance_id', $validated['seance_id'])
-            ->whereHas('seats', function ($query) use ($validated) {
-                $query->whereIn('seat_id', $validated['seat_ids']);
-            })->whereIn('status', ['pending', 'paid'])->exists();
+            ->whereHas('seats', fn($q) => $q->whereIn('seats.id', $validated['seat_ids']))
+            ->whereIn('status', ['pending', 'paid'])
+            ->exists();
 
         if ($alreadyReserved) {
             return response()->json([
@@ -42,69 +66,84 @@ class ReservationController extends Controller
             ], 422);
         }
 
-        // Fetch the Seance to get the base_price
-        $seance = Seance::findOrFail($validated['seance_id']);
-        $seats = Seat::whereIn('id', $validated['seat_ids'])->get();
-
         $totalPrice = 0;
-        
         foreach ($seats as $seat) {
-            // Ensure seat belongs to the correct salle
-            if ($seat->salle_id !== $seance->salle_id) {
-                return response()->json([
-                    'error' => 'One or more seats do not belong to the room assigned to this seance.'
-                ], 422);
-            }
-
-            // Calculate price based on seat type
             if ($seat->type === 'vip') {
-                $totalPrice += $seance->base_price + 30; // 30 DHS premium for VIP
+                $totalPrice += $seance->base_price + 30;
             } elseif ($seat->type === 'couple') {
-                $totalPrice += ($seance->base_price * 2); // Couple seat counts as 2 seats
+                $totalPrice += $seance->base_price * 2;
             } else {
-                $totalPrice += $seance->base_price; // Standard
+                $totalPrice += $seance->base_price;
             }
         }
 
-        // Create the Reservation 
         $reservation = Reservation::create([
-            'user_id' => $validated['user_id'],
-            'seance_id' => $validated['seance_id'],
+            'user_id'     => auth()->id(),
+            'seance_id'   => $validated['seance_id'],
             'total_price' => $totalPrice,
-            'status' => 'pending',
-            'expires_at' => now()->addMinutes(15),
+            'status'      => 'pending',
+            'expires_at'  => now()->addMinutes(15),
         ]);
 
-        // Link the Seats to the Reservation in the pivot table
         $reservation->seats()->attach($validated['seat_ids']);
 
         return response()->json([
-            'message' => 'Reservation created successfully! Please pay within 15 minutes.',
-            'reservation' => $reservation->load('seats')
+            'message'     => 'Reservation created successfully! Please pay within 15 minutes.',
+            'reservation' => $reservation->load(['seats', 'seance.film'])
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
-        //
+        $reservation = Reservation::with(['seance.film', 'seance.salle', 'seats', 'ticket'])
+            ->findOrFail($id);
+
+        if ($reservation->user_id !== auth()->id() && !auth()->user()->is_admin) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        return response()->json($reservation);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
-        //
+        $reservation = Reservation::findOrFail($id);
+
+        if ($reservation->user_id !== auth()->id() && !auth()->user()->is_admin) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        if ($reservation->status !== 'pending') {
+            return response()->json([
+                'error' => 'Only pending reservations can be cancelled.'
+            ], 422);
+        }
+
+        $reservation->update(['status' => 'cancelled']);
+
+        return response()->json([
+            'message'     => 'Reservation cancelled successfully.',
+            'reservation' => $reservation
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+        public function destroy(string $id)
     {
-        //
+        $reservation = Reservation::findOrFail($id);
+
+        if ($reservation->user_id !== auth()->id() && !auth()->user()->is_admin) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        if (!auth()->user()->is_admin && $reservation->status !== 'pending') {
+            return response()->json([
+                'error' => 'You can only delete pending reservations.'
+            ], 422);
+        }
+
+        $reservation->seats()->detach();
+        $reservation->delete();
+
+        return response()->json(['message' => 'Reservation deleted successfully.']);
     }
 }

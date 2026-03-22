@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Seance extends Model
 {
@@ -22,6 +23,8 @@ class Seance extends Model
 
     protected $casts = [
         'start_time' => 'datetime',
+        'end_time'   => 'datetime',
+        'base_price' => 'float',
     ];
 
     public function film(): BelongsTo
@@ -32,5 +35,10 @@ class Seance extends Model
     public function salle(): BelongsTo
     {
         return $this->belongsTo(Salle::class);
+    }
+
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class);
     }
 }
