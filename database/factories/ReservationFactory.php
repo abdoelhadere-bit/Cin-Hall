@@ -14,7 +14,7 @@ class ReservationFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'showing_id' => 1,
+            'seance_id' => \App\Models\Seance::factory(),
             'total_price' => 50.00,
             'status' => 'pending',
             'expires_at' => now()->addHour(),
