@@ -47,6 +47,9 @@ Route::middleware('auth:api')->group(function () {
 
     Route::apiResource('reservations', ReservationController::class);
 
+    // Demo: simulate successful payment (no Stripe/PayPal)
+    Route::post('/reservations/{id}/simulate-payment', [ReservationController::class, 'simulatePayment']);
+
     // Payment checkout & success
     Route::post('/reservations/{id}/checkout', [PaymentController::class, 'checkout'])->name('checkout');
     Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');

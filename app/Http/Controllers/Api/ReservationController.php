@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Reservation;
 use App\Models\Seat;
 use App\Models\Seance;
+use App\Services\TicketService;
 
 class ReservationController extends Controller
 {
@@ -145,5 +146,37 @@ class ReservationController extends Controller
         $reservation->delete();
 
         return response()->json(['message' => 'Reservation deleted successfully.']);
+    }
+
+    /**
+     * DEMO ONLY — simulate a successful payment without Stripe/PayPal.
+     */
+    public function simulatePayment(string $id, TicketService $ticketService)
+    {
+        $reservation = Reservation::with(['user', 'seats', 'seance.film', 'ticket'])
+            ->findOrFail($id);
+
+        if ($reservation->user_id !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        if ($reservation->status === 'paid') {
+            return response()->json(['message' => 'Already paid', 'reservation' => $reservation]);
+        }
+
+        if ($reservation->status !== 'pending') {
+            return response()->json(['error' => 'Only pending reservations can be paid.'], 422);
+        }
+
+        $reservation->update(['status' => 'paid']);
+        $reservation->refresh();
+
+        // Generate ticket (QR code + PDF)
+        $ticket = $ticketService->generate($reservation);
+
+        return response()->json([
+            'message'     => 'Payment simulated successfully.',
+            'reservation' => $reservation->load(['seats', 'seance.film', 'ticket']),
+        ]);
     }
 }
